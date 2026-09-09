@@ -1,0 +1,1 @@
+const {call}=require('../../utils/api');Page({data:{storeId:101,data:{}},onLoad(){this.load()},load(){call('merchantData',{storeId:this.data.storeId}).then(r=>this.setData({data:r.data||{}}))},claim(){call('claimStore',{storeId:this.data.storeId}).then(()=>wx.showToast({title:'已提交认领'}))}})

@@ -1,0 +1,1 @@
+const {call}=require('../../utils/api');Page({data:{user:{}},onLoad(o){this.id=o.id;this.load()},async load(){const r=await call('hobbyDetail',{userId:this.id});this.setData({user:r.data||{}})},follow(){call('follow',{targetId:this.id}).then(()=>wx.showToast({title:'已更新'}))}})

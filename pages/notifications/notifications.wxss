@@ -1,0 +1,1 @@
+.page{padding:28rpx;background:#fff8ef;min-height:100vh}.item{display:flex;gap:18rpx;background:#fff;border-radius:24rpx;padding:26rpx;margin-bottom:16rpx}.dot{width:18rpx;height:18rpx;background:#ff6848;border-radius:50%;margin-top:12rpx}.title{font-weight:700}.content{color:#888;margin-top:8rpx}.empty{text-align:center;color:#aaa;padding-top:200rpx}

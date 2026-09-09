@@ -1,0 +1,1 @@
+const {call}=require('../../utils/api');Page({data:{users:[],loading:true},onLoad(){this.load()},async load(){const r=await call('sameHobby');this.setData({users:r.data||[],loading:false})},open(e){wx.navigateTo({url:'/pages/hobby-detail/hobby-detail?id='+e.currentTarget.dataset.id})},follow(e){call('follow',{targetId:e.currentTarget.dataset.id}).then(()=>this.load())}})

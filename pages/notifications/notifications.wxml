@@ -1,0 +1,1 @@
+<view class="page"><view wx:if="{{!items.length}}" class="empty">还没有新消息</view><view wx:for="{{items}}" wx:key="_id" class="item"><view class="dot"></view><view><view class="title">{{item.title||'许吃提醒'}}</view><view class="content">{{item.content||'有新的互动消息'}}</view></view></view></view>
