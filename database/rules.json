@@ -1,0 +1,15 @@
+{
+  "users":{"read":"auth != null","write":"_openid == auth.openid"},
+  "stores":{"read":true,"write":false},
+  "dishes":{"read":true,"write":false},
+  "posts":{"read":true,"write":"_openid == auth.openid"},
+  "user_actions":{"read":"_openid == auth.openid","write":"_openid == auth.openid"},
+  "favorites":{"read":"_openid == auth.openid","write":"_openid == auth.openid"},
+  "comments":{"read":true,"write":"auth != null"},
+  "comment_likes":{"read":"auth != null","write":"_openid == auth.openid"},
+  "follows":{"read":"auth != null","write":"_openid == auth.openid"},
+  "notifications":{"read":"_openid == auth.openid","write":false},
+  "merchant_claims":{"read":"_openid == auth.openid","write":"_openid == auth.openid"},
+  "coupons":{"read":true,"write":false},
+  "coupon_users":{"read":"_openid == auth.openid","write":"_openid == auth.openid"}
+}
