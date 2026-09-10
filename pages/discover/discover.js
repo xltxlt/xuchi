@@ -1,18 +1,21 @@
 const {dishes}=require('../../utils/data');
 const {call}=require('../../utils/api');
 
+function loadFeed(page=1){
+  if(wx.cloud&&wx.cloud.callFunction){
+    return wx.cloud.callFunction({name:'feed',data:{page}}).then(r=>r&&r.result||{});
+  }
+  return call('feed',{page,pageSize:10},{cache:false});
+}
+
 Page({
-  data:{
-    feed:[],
-    hotTags:['必点','性价比高','重口爱好者','隐藏宝藏','下午茶','夜宵'],
-    loading:true
-  },
+  data:{feed:[],hotTags:['必点','性价比高','重口爱好者','隐藏宝藏','下午茶','夜宵'],loading:true},
   onLoad(){this.load()},
   onPullDownRefresh(){this.load().finally(()=>wx.stopPullDownRefresh())},
   load(){
     this.setData({loading:true});
-    return call('feed',{page:1,pageSize:10},{cache:false}).then(r=>{
-      const list=(r&&Array.isArray(r.data))?r.data:((r&&r.data&&Array.isArray(r.data.list))?r.data.list:[]);
+    return loadFeed(1).then(r=>{
+      const list=Array.isArray(r&&r.data)?r.data:[];
       this.setData({feed:list.length?list:this.localFeed(),loading:false});
     }).catch(()=>this.setData({feed:this.localFeed(),loading:false}));
   },
@@ -32,13 +35,13 @@ Page({
   },
   openDish(e){
     const id=e.currentTarget.dataset.id;
-    if(!id)return;
+    if(!id)return wx.showToast({title:'菜品信息暂不可用',icon:'none'});
     wx.navigateTo({url:'/pages/dish/dish?id='+id});
   },
   openHobby(){wx.navigateTo({url:'/pages/hobby/hobby'})},
   chooseTag(e){
     const tag=e.currentTarget.dataset.tag;
-    wx.showToast({title:'正在找「'+tag+'」',icon:'none'});
+    wx.navigateTo({url:'/pages/search/search?keyword='+encodeURIComponent(tag)});
   },
   publish(){wx.switchTab({url:'/pages/publish/publish'})}
-})
+});
