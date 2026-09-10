@@ -11,15 +11,15 @@ Page({
   onPullDownRefresh(){this.load().finally(()=>wx.stopPullDownRefresh())},
   load(){
     this.setData({loading:true});
-    return call('feed',{page:1,pageSize:10}).then(r=>{
-      const list=(r&&r.data&&r.data.list)||r.data||[];
-      this.setData({feed:list&&list.length?list:this.localFeed(),loading:false});
+    return call('feed',{page:1,pageSize:10},{cache:false}).then(r=>{
+      const list=(r&&Array.isArray(r.data))?r.data:((r&&r.data&&Array.isArray(r.data.list))?r.data.list:[]);
+      this.setData({feed:list.length?list:this.localFeed(),loading:false});
     }).catch(()=>this.setData({feed:this.localFeed(),loading:false}));
   },
   localFeed(){
     return dishes.slice(0,5).map((d,i)=>({
       _id:'local-'+d.id,
-      name:['阿伟','小林','可乐','小周','小许'][i]||'美食同好',
+      userName:['阿伟','小林','可乐','小周','小许'][i]||'美食同好',
       avatar:['🌶️','🍜','🍖','🍰','🍚'][i]||'🍜',
       text:i===0?'刚刚许吃了「'+d.name+'」':'推荐一道我觉得很稳的「'+d.name+'」',
       dishId:d.id,
@@ -30,7 +30,11 @@ Page({
       time:i+1+'小时前'
     }));
   },
-  openDish(e){wx.navigateTo({url:'/pages/dish/dish?id='+e.currentTarget.dataset.id})},
+  openDish(e){
+    const id=e.currentTarget.dataset.id;
+    if(!id)return;
+    wx.navigateTo({url:'/pages/dish/dish?id='+id});
+  },
   openHobby(){wx.navigateTo({url:'/pages/hobby/hobby'})},
   chooseTag(e){
     const tag=e.currentTarget.dataset.tag;
