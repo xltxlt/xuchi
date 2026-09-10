@@ -1,0 +1,7 @@
+{
+  "name": "xuchi-groupbuy",
+  "version": "1.0.0",
+  "description": "许吃组团购统计云函数",
+  "main": "index.js",
+  "dependencies": { "wx-server-sdk": "latest" }
+}
