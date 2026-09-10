@@ -1,19 +1,16 @@
-const {dishes}=require('../../utils/data'); const {call}=require('../../utils/api');
+const {dishes}=require('../../utils/data');const {call}=require('../../utils/api');
 Page({
-  data:{dish:dishes[0],liked:false,favorited:false,comments:[],comment:'',replyTo:'',recorded:false},
-  onLoad(o){const d=dishes.find(x=>x.id==o.id)||dishes[0];const history=wx.getStorageSync('eatHistory')||[];this.setData({dish:d,liked:(wx.getStorageSync('likedDishes')||[]).includes(d.id),recorded:history.some(x=>x.id===d.id)});this.loadComments()},
-  loadComments(){call('comments',{dishId:this.data.dish.id,page:1}).then(r=>this.setData({comments:r.data||[]})).catch(()=>{})},
-  toggleLike(){const id=this.data.dish.id,liked=this.data.liked;let a=wx.getStorageSync('likedDishes')||[];liked?a=a.filter(x=>x!==id):a.push(id);wx.setStorageSync('likedDishes',a);this.setData({liked:!liked});call('action',{dishId:id,type:liked?'none':'yes'}).catch(()=>{})},
-  favorite(){call('favorite',{dishId:this.data.dish.id}).then(r=>this.setData({favorited:r.favorited})).catch(()=>{})},
-  recordEat(){const d=this.data.dish;let history=wx.getStorageSync('eatHistory')||[];history=history.filter(x=>x.id!==d.id);history.unshift({id:d.id,name:d.name,store:d.store,emoji:d.emoji,status:'❤️ 许吃',time:Date.now()});wx.setStorageSync('eatHistory',history.slice(0,100));this.setData({recorded:true});wx.showToast({title:'已记入吃过',icon:'success'});call('action',{dishId:d.id,type:'eat'}).catch(()=>{})},
-  eatAgain(){const d=this.data.dish;let history=wx.getStorageSync('eatHistory')||[];history=history.filter(x=>x.id!==d.id);history.unshift({id:d.id,name:d.name,store:d.store,emoji:d.emoji,status:'🔁 再吃一次',time:Date.now()});wx.setStorageSync('eatHistory',history.slice(0,100));this.setData({recorded:true});wx.showToast({title:'已记入今天，去吃它吧',icon:'success'});call('action',{dishId:d.id,type:'eatAgain'}).catch(()=>{})},
-  onComment(e){this.setData({comment:e.detail.value})},
-  reply(e){this.setData({replyTo:e.currentTarget.dataset.id});wx.showToast({title:'正在回复',icon:'none'})},
-  submitComment(){const content=this.data.comment.trim();if(!content)return;call('comment',{dishId:this.data.dish.id,content,parentId:this.data.replyTo}).then(()=>{this.setData({comment:'',replyTo:''});this.loadComments();wx.showToast({title:'评论成功',icon:'success'})}).catch(()=>{})},
-  likeComment(e){call('commentLike',{commentId:e.currentTarget.dataset.id}).then(()=>this.loadComments()).catch(()=>{})},
-  share(){wx.showToast({title:'已生成同好分享卡',icon:'success'})},
-  openReason(){wx.navigateTo({url:'/pages/reason/reason?id='+this.data.dish.id})},
-  openStore(){wx.navigateTo({url:'/pages/store/store?id='+(this.data.dish.storeId||101)})},
-  openHistory(){wx.navigateTo({url:'/pages/eat-history/eat-history'})},
-  startGroupBuy(){const d=this.data.dish;wx.navigateTo({url:'/pages/groupbuy-create/groupbuy-create?'+['dishId='+encodeURIComponent(d.id||''),'dishName='+encodeURIComponent(d.name||''),'storeId='+encodeURIComponent(d.storeId||''),'storeName='+encodeURIComponent(d.store||''),'price='+encodeURIComponent(d.price||0),'unit='+encodeURIComponent(d.unit||'份')].join('&')})}
+ data:{dish:dishes[0],vote:'none',favorited:false,comments:[],comment:'',replyTo:'',recorded:false},
+ onLoad(o){const d=dishes.find(x=>x.id==o.id)||dishes[0],history=wx.getStorageSync('eatHistory')||[],votes=wx.getStorageSync('dishVotes')||{};this.setData({dish:d,vote:votes[d.id]||'none',favorited:(wx.getStorageSync('favoriteDishes')||[]).includes(d.id),recorded:history.some(x=>x.id===d.id)});this.loadComments()},
+ loadComments(){call('comments',{dishId:this.data.dish.id,page:1}).then(r=>this.setData({comments:r.data||[]})).catch(()=>{})},
+ vote(type){const id=this.data.dish.id,old=this.data.vote,next=old===type?'none':type,votes=wx.getStorageSync('dishVotes')||{};votes[id]=next;wx.setStorageSync('dishVotes',votes);this.setData({vote:next});call('action',{dishId:id,type:next}).catch(()=>{})},
+ toggleLike(){this.vote('yes')},
+ favorite(){const id=this.data.dish.id,a=wx.getStorageSync('favoriteDishes')||[],on=a.includes(id),next=on?a.filter(x=>x!==id):a.concat(id);wx.setStorageSync('favoriteDishes',next);this.setData({favorited:!on});call('favorite',{dishId:id}).catch(()=>{})},
+ recordEat(){const d=this.data.dish;let history=wx.getStorageSync('eatHistory')||[];history=history.filter(x=>x.id!==d.id);history.unshift({id:d.id,name:d.name,store:d.store,emoji:d.emoji,status:'🍽️ 吃过',time:Date.now()});wx.setStorageSync('eatHistory',history.slice(0,100));this.setData({recorded:true});wx.showToast({title:'已记入吃过',icon:'success'});call('action',{dishId:d.id,type:'eat'}).catch(()=>{})},
+ eatAgain(){const d=this.data.dish;let history=wx.getStorageSync('eatHistory')||[];history=history.filter(x=>x.id!==d.id);history.unshift({id:d.id,name:d.name,store:d.store,emoji:d.emoji,status:'🔁 再吃一次',time:Date.now()});wx.setStorageSync('eatHistory',history.slice(0,100));this.setData({recorded:true});wx.showToast({title:'已记入今天',icon:'success'});call('action',{dishId:d.id,type:'eatAgain'}).catch(()=>{})},
+ onComment(e){this.setData({comment:e.detail.value})},
+ reply(e){this.setData({replyTo:e.currentTarget.dataset.id});wx.showToast({title:'正在回复',icon:'none'})},
+ submitComment(){const content=this.data.comment.trim();if(!content)return wx.showToast({title:'评论不能为空',icon:'none'});if(content.length>200)return wx.showToast({title:'评论最多200字',icon:'none'});const bad=['赌博','诈骗','色情','辱骂'];if(bad.some(x=>content.includes(x)))return wx.showToast({title:'评论包含敏感内容',icon:'none'});call('comment',{dishId:this.data.dish.id,content,parentId:this.data.replyTo}).then(r=>{if(r&&r.success===false)throw new Error(r.message||'评论失败');this.setData({comment:'',replyTo:''});this.loadComments();wx.showToast({title:'评论成功',icon:'success'})}).catch(()=>wx.showToast({title:'评论失败，请稍后再试',icon:'none'}))},
+ likeComment(e){call('commentLike',{commentId:e.currentTarget.dataset.id}).then(()=>this.loadComments()).catch(()=>{})},
+ share(){wx.showToast({title:'已生成同好分享卡',icon:'success'})},openReason(){wx.navigateTo({url:'/pages/reason/reason?id='+this.data.dish.id})},openStore(){wx.navigateTo({url:'/pages/store/store?id='+(this.data.dish.storeId||101)})},openHistory(){wx.navigateTo({url:'/pages/eat-history/eat-history'})},startGroupBuy(){const d=this.data.dish;wx.navigateTo({url:'/pages/groupbuy-create/groupbuy-create?'+['dishId='+encodeURIComponent(d.id||''),'dishName='+encodeURIComponent(d.name||''),'storeId='+encodeURIComponent(d.storeId||''),'storeName='+encodeURIComponent(d.store||''),'price='+encodeURIComponent(d.price||0),'unit='+encodeURIComponent(d.unit||'份')].join('&')})}
 })
