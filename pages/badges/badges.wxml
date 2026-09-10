@@ -1,0 +1,1 @@
+<view class="page"><view class="title">我的勋章 🏅</view><view class="grid"><view wx:for="{{badges}}" wx:key="key" class="badge {{unlocked.indexOf(item.key)>=0?'on':''}}"><text>{{item.icon}}</text><b>{{item.name}}</b><small>{{item.desc}}</small><label wx:if="{{unlocked.indexOf(item.key)>=0}}">已解锁</label></view></view></view>
