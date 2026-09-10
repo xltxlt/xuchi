@@ -29,13 +29,13 @@
     <view class="memory-entry" bindtap="recordEat"><view class="memory-icon">{{recorded?'✅':'🍽️'}}</view><view class="memory-copy"><view class="memory-title">{{recorded?'已经吃过这道菜':'记录我吃过这道菜'}}</view><view class="memory-sub">{{recorded?'已进入你的美食记忆':'吃过之后，推荐会越来越懂你'}}</view></view><text>›</text></view>
     <view wx:if="{{recorded}}" class="eat-again" bindtap="eatAgain"><view><view class="eat-again-title">🔁 想再吃？</view><view class="eat-again-sub">把 {{dish.name}} 记入今天的吃过</view></view><text>再吃一次 ›</text></view>
 
-    <view class="section-title">👯 同好评价</view>
+    <view class="section-title"><text>👯 同好评价</text><text class="section-more">{{similarUsers.length}} 位</text></view>
     <view wx:if="{{similarUsers.length}}" class="similar-list">
-      <view wx:for="{{similarUsers}}" wx:key="_id" class="similar-row"><text class="similar-avatar">{{item.avatar||'🍜'}}</text><view class="similar-copy"><view><text class="bold">{{item.name||'美食同好'}}</text><text class="similar-match">与你相似 {{item.similarity||0}}%</text></view><view class="muted">{{item.common&&item.common.length?'共同口味：'+item.common.slice(0,3).join('、'):'口味与你很接近'}}</view></view><text class="orange">{{item.following?'已关注':'同好'}}</text></view>
+      <view wx:for="{{similarUsers}}" wx:key="_id" class="similar-row" data-id="{{item._id}}" bindtap="openHobby"><text class="similar-avatar">{{item.avatar||'🍜'}}</text><view class="similar-copy"><view><text class="bold">{{item.name||'美食同好'}}</text><text class="similar-match">与你相似 {{item.similarity||0}}%</text></view><view class="muted">{{item.common&&item.common.length?'共同口味：'+item.common.slice(0,3).join('、'):'口味与你很接近'}}</view></view><text class="orange">{{item.following?'已关注':'同好 ›'}}</text></view>
     </view>
     <view wx:else class="empty-tip">还没有找到相似口味的同好，先留下你的第一条评价吧。</view>
 
-    <view class="section-title">💬 评论聊天 <text class="section-more">{{comments.length}} 条</text></view>
+    <view class="section-title"><text>💬 评论聊天</text><text class="section-more">{{comments.length}} 条 · 说说你的真实感受</text></view>
     <view wx:for="{{comments}}" wx:key="_id" class="comment card">
       <view class="comment-head"><view class="comment-user"><text class="comment-avatar">{{item.avatar||'🍜'}}</text><view><text class="bold">{{item.name||'匿名吃货'}}</text><text class="comment-vote">{{item.vote==='yes'?'❤️ 许吃':item.vote==='conditional'?'🤔 有条件':'美食分享'}}</text></view></view><text class="muted">{{item.likes||0}} 赞</text></view>
       <view class="comment-text">{{item.content}}</view>
