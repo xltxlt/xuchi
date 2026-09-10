@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-top"><view><view class="eyebrow">{{scene}} · 附近</view><view class="title">附近吃什么？</view></view><view class="loc" bindtap="locate">⌖ 更新位置</view></view>
+    <view class="sub">先看离你近的，再看真正适合你口味的</view>
+  </view>
+
+  <scroll-view scroll-x class="scene-scroll" show-scrollbar="false">
+    <view wx:for="{{scenes}}" wx:key="*this" class="scene {{item===scene?'active':''}}" data-scene="{{item}}" bindtap="chooseScene">{{item}}</view>
+  </scroll-view>
+
+  <view class="hint"><text class="hint-icon">✦</text><view><b>{{locationText}}</b><small>按距离 × 口味匹配，为你排好了顺序</small></view></view>
+
+  <view class="section-title">现在值得吃</view>
+  <view wx:for="{{stores}}" wx:key="id" class="store-card">
+    <view class="store-head">
+      <view class="store-icon">{{item.emoji||'🍜'}}</view>
+      <view class="store-info"><view class="store-name">{{item.name}}</view><view class="meta"><text>{{item.distance}}</text><text class="dot">·</text><text class="open {{item.open?'':'closed'}}">{{item.openText}}</text></view></view>
+      <view class="match"><b>{{item.match}}%</b><small>像你</small></view>
+    </view>
+    <view class="recommend-dish" wx:if="{{item.top}}" data-id="{{item.topId}}" bindtap="openDish">
+      <view class="dish-emoji">{{item.topEmoji||'🍽️'}}</view>
+      <view class="dish-info"><view class="dish-name">{{item.top}}</view><view class="dish-tags"><text wx:for="{{item.topTags||item.tags}}" wx:key="*this">{{item}}</text></view></view>
+      <view class="price" wx:if="{{item.price&&item.price!=='—'}}">¥{{item.price}}</view><text class="arrow">›</text>
+    </view>
+    <view class="store-foot"><view class="tags"><text wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</text></view><text wx:if="{{item.topId}}" class="why" data-id="{{item.topId}}" catchtap="openReason">为什么推荐 ›</text></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">正在找适合你的店…</view>
+  <view wx:if="{{!loading&&!stores.length}}" class="empty">附近暂时没有推荐，去发现看看大家都在吃什么～</view>
+</view>
