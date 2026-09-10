@@ -1,5 +1,5 @@
 <view class="page">
   <view class="head"><view><view class="title">我的吃过</view><view class="sub">每一口，都会让许吃更懂你</view></view><text wx:if="{{items.length}}" bindtap="clear">清空</text></view>
-  <view wx:if="{{!items.length}}" class="empty"><text>🍽️</text><view>还没有记录</view><small>去菜品详情点一下「记录这次吃到的味道」</small></view>
+  <view wx:if="{{!items.length}}" class="empty"><text>🍽️</text><view>还没有记录</view><text class="empty-tip">去菜品详情点一下「记录这次吃到的味道」</text></view>
   <view wx:for="{{items}}" wx:key="id" class="item" bindtap="openDish" data-id="{{item.id}}"><text class="emoji">{{item.emoji}}</text><view class="main"><view class="name">{{item.name}}</view><view class="store">{{item.store}}</view><view class="date">{{item.date}}</view></view><text class="status">{{item.status}}</text><text class="arrow">›</text></view>
 </view>
