@@ -1,0 +1,2 @@
+const {dishes,stores}=require('../../utils/data');
+Page({data:{store:{},dishes:[]},onLoad(o){const s=stores.find(x=>x.id==o.id)||stores[0];this.setData({store:s,dishes:dishes.filter(d=>d.storeId===s.id)})},openDish(e){wx.navigateTo({url:'/pages/dish/dish?id='+e.currentTarget.dataset.id})}})
