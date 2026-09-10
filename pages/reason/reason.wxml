@@ -1,1 +1,24 @@
-<view class="page"><view class="score">{{data.score}}%</view><view class="title">这道菜为什么适合你？</view><view class="box"><view class="h">命中的口味</view><view class="tags"><text wx:for="{{data.common}}" wx:key="*this" class="tag">{{item}}</text></view><view class="reason">{{data.reason}}</view></view></view>
+<view class="page">
+  <view wx:if="{{!loading}}" class="hero">
+    <view class="score">{{data.score||dish.match||91}}<text>%</text></view>
+    <view class="title">这道菜为什么适合你？</view>
+    <view class="dish">{{dish.emoji}} {{dish.name}}</view>
+  </view>
+
+  <view class="box">
+    <view class="h">🎯 命中的口味</view>
+    <view class="tags"><text wx:for="{{common}}" wx:key="*this" class="tag">{{item}}</text></view>
+    <view wx:if="{{!common.length}}" class="muted">暂时没有直接命中的标签，但它和你的历史许吃行为相似。</view>
+    <view class="reason">{{data.reason}}</view>
+  </view>
+
+  <view class="box">
+    <view class="h">👯 同好验证</view>
+    <view wx:for="{{socialProof}}" wx:key="*this" class="proof"><text class="proof-dot">✓</text><text>{{item}}</text></view>
+  </view>
+
+  <view class="box">
+    <view class="h">你的口味画像</view>
+    <view class="tags"><text wx:for="{{userTags}}" wx:key="*this" class="tag soft">{{item}}</text></view>
+  </view>
+</view>
