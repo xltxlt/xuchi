@@ -6,6 +6,7 @@
     <view class="tags"><text wx:for="{{dish.tags}}" wx:key="*this" class="pill">{{item}}</text></view>
     <view class="desc">{{dish.desc}}</view>
     <view class="memory-entry" bindtap="recordEat"><view class="memory-icon">{{recorded?'✅':'🍽️'}}</view><view class="memory-copy"><view class="memory-title">{{recorded?'已经记过这道菜':'记录这次吃到的味道'}}</view><view class="memory-sub">{{recorded?'去「我的吃过」回顾':'以后推荐会越来越懂你'}}</view></view><text>›</text></view>
+    <view wx:if="{{recorded}}" class="eat-again" bindtap="eatAgain"><view><view class="eat-again-title">🔁 想吃了？</view><view class="eat-again-sub">把 {{dish.name}} 加到今天的美食记录</view></view><text>再吃一次 ›</text></view>
     <view class="groupbuy-entry" bindtap="startGroupBuy"><view class="groupbuy-icon">🛒</view><view class="groupbuy-copy"><view class="groupbuy-title">一键发起团购</view><view class="groupbuy-sub">自动带入 {{dish.name}} · ¥{{dish.price}}/{{dish.unit||'份'}}</view></view><text class="groupbuy-arrow">›</text></view>
     <view class="section-title">大家怎么说</view>
     <view class="vote-stat"><view>❤️ 许吃 <b>94%</b></view><view>🤔 有条件 <b>4%</b></view><view>👎 不许吃 <b>2%</b></view></view>
