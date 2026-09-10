@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="hero">
+    <view class="eyebrow">发现今天的好吃</view>
+    <view class="title">同好都在吃什么？</view>
+    <view class="sub">不是全网最火，而是更像你的人正在许吃</view>
+    <view class="hobby-entry" bindtap="openHobby"><view><b>👯 找口味同好</b><small>看看和你最像的人</small></view><text>›</text></view>
+  </view>
+
+  <view class="section-title">热门口味</view>
+  <scroll-view scroll-x class="tag-scroll">
+    <view wx:for="{{hotTags}}" wx:key="*this" class="hot-tag" data-tag="{{item}}" bindtap="chooseTag">{{item}}</view>
+  </scroll-view>
+
+  <view class="section-title feed-title">正在发生</view>
+  <view wx:for="{{feed}}" wx:key="_id" class="feed-card">
+    <view class="feed-head"><text class="avatar">{{item.avatar||'🍜'}}</text><view class="person"><b>{{item.name||'美食同好'}}</b><small>{{item.time||'刚刚'}}</small></view><text class="match">{{item.match||91}}%像你</text></view>
+    <view class="feed-text">{{item.text}}</view>
+    <view class="dish-row" wx:if="{{item.dishId}}" data-id="{{item.dishId}}" bindtap="openDish"><text class="dish-icon">🍽️</text><view><b>{{item.dishName}}</b><small>{{item.store}}</small></view><text class="arrow">›</text></view>
+    <view class="feed-tags"><text wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</text></view>
+  </view>
+
+  <view wx:if="{{!loading && !feed.length}}" class="empty">还没有动态，去发布你的第一口吧～<button size="mini" bindtap="publish">去发布</button></view>
+</view>
