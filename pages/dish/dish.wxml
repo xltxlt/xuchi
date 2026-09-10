@@ -29,18 +29,26 @@
     <view class="memory-entry" bindtap="recordEat"><view class="memory-icon">{{recorded?'✅':'🍽️'}}</view><view class="memory-copy"><view class="memory-title">{{recorded?'已经吃过这道菜':'记录我吃过这道菜'}}</view><view class="memory-sub">{{recorded?'已进入你的美食记忆':'吃过之后，推荐会越来越懂你'}}</view></view><text>›</text></view>
     <view wx:if="{{recorded}}" class="eat-again" bindtap="eatAgain"><view><view class="eat-again-title">🔁 想再吃？</view><view class="eat-again-sub">把 {{dish.name}} 记入今天的吃过</view></view><text>再吃一次 ›</text></view>
 
-    <view class="section-title"><text>👯 同好评价</text><text class="section-more">{{similarUsers.length}} 位</text></view>
+    <view class="section-title"><text>👯 同好评价</text><text class="section-more">{{hobbyRate}}% 同好许吃 · {{similarUsers.length}} 位</text></view>
     <view wx:if="{{similarUsers.length}}" class="similar-list">
-      <view wx:for="{{similarUsers}}" wx:key="_id" class="similar-row" data-id="{{item._id}}" bindtap="openHobby"><text class="similar-avatar">{{item.avatar||'🍜'}}</text><view class="similar-copy"><view><text class="bold">{{item.name||'美食同好'}}</text><text class="similar-match">与你相似 {{item.similarity||0}}%</text></view><view class="muted">{{item.common&&item.common.length?'共同口味：'+item.common.slice(0,3).join('、'):'口味与你很接近'}}</view></view><text class="orange">{{item.following?'已关注':'同好 ›'}}</text></view>
+      <view wx:for="{{similarUsers}}" wx:key="_id" class="similar-row" data-id="{{item._id}}" bindtap="openHobby">
+        <text class="similar-avatar">{{item.avatar||'🍜'}}</text>
+        <view class="similar-copy">
+          <view><text class="bold">{{item.name||'美食同好'}}</text><text class="similar-match">与你相似 {{item.similarity||0}}%</text></view>
+          <view class="similar-verdict">{{item.vote==='yes'?'❤️ 许吃':item.vote==='conditional'?'🤔 有条件许吃':'👎 不许吃'}}</view>
+          <view class="muted">{{item.common&&item.common.length?'因为也喜欢 '+item.common.slice(0,3).join('、'):'口味与你很接近'}}</view>
+        </view>
+        <text class="orange">{{item.following?'已关注':'同好 ›'}}</text>
+      </view>
     </view>
-    <view wx:else class="empty-tip">还没有找到相似口味的同好，先留下你的第一条评价吧。</view>
+    <view wx:else class="empty-tip">还没有同好对这道菜留下态度，先成为第一个评价的人吧。</view>
 
     <view class="section-title"><text>💬 评论聊天</text><text class="section-more">{{comments.length}} 条 · 说说你的真实感受</text></view>
     <view wx:for="{{comments}}" wx:key="_id" class="comment card">
-      <view class="comment-head"><view class="comment-user"><text class="comment-avatar">{{item.avatar||'🍜'}}</text><view><text class="bold">{{item.name||'匿名吃货'}}</text><text class="comment-vote">{{item.vote==='yes'?'❤️ 许吃':item.vote==='conditional'?'🤔 有条件':'美食分享'}}</text></view></view><text class="muted">{{item.likes||0}} 赞</text></view>
+      <view class="comment-head"><view class="comment-user"><text class="comment-avatar">{{item.avatar||'🍜'}}</text><view><text class="bold">{{item.name||'匿名吃货'}}</text><text class="comment-vote">{{item.vote==='yes'?'❤️ 许吃':item.vote==='conditional'?'🤔 有条件许吃':item.vote==='no'?'👎 不许吃':'美食分享'}}</text></view></view><text class="muted">{{item.likes||0}} 赞</text></view>
       <view class="comment-text">{{item.content}}</view>
       <view class="comment-actions"><text bindtap="likeComment" data-id="{{item._id}}">👍 赞</text><text bindtap="reply" data-id="{{item._id}}" data-name="{{item.name||'这位吃货'}}">↩ 回复</text></view>
-      <view wx:for="{{item.replies}}" wx:key="_id" class="reply"><view class="comment-head"><view class="comment-user"><text class="reply-avatar">{{item.avatar||'🍜'}}</text><text class="bold">{{item.name||'匿名吃货'}}</text></view><text class="muted">{{item.likes||0}} 赞</text></view><view class="reply-text">{{item.content}}</view></view>
+      <view wx:for="{{item.replies}}" wx:key="_id" class="reply"><view class="comment-head"><view class="comment-user"><text class="reply-avatar">{{item.avatar||'🍜'}}</text><view><text class="bold">{{item.name||'匿名吃货'}}</text><text class="comment-vote">{{item.vote==='yes'?'❤️ 许吃':item.vote==='conditional'?'🤔 有条件许吃':item.vote==='no'?'👎 不许吃':'美食分享'}}</text></view></view><text class="muted">{{item.likes||0}} 赞</text></view><view class="reply-text">{{item.content}}</view></view>
     </view>
     <view wx:if="{{replyTo}}" class="replying">正在回复 {{replyName}} <text bindtap="cancelReply">取消</text></view>
     <view class="comment-box"><input value="{{comment}}" bindinput="onComment" maxlength="200" placeholder="{{replyTo?'回复这位吃货…':'说说你吃过的感受，和同好聊两句…'}}"/><button loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitComment">发送</button></view>
