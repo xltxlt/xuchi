@@ -1,12 +1,13 @@
 const {call}=require('../../utils/api');
 Page({
- data:{items:[],loading:false},
+ data:{items:[],loading:false,clearing:false},
  onShow(){this.load()},
  async load(){
   const local=wx.getStorageSync('eatHistory')||[];
   this.setData({loading:true});
   try{
    const r=await call('eatHistory',{page:1});
+   if(r&&r.success===false)throw new Error(r.message||'加载失败');
    const cloud=Array.isArray(r&&r.data)?r.data:[];
    const map=new Map();
    local.forEach(x=>map.set(String(x.id),x));
@@ -20,5 +21,5 @@ Page({
  toTime(v){if(!v)return 0;if(typeof v==='number')return v;if(v instanceof Date)return v.getTime();if(v.$date)return new Date(v.$date).getTime();if(v._date)return new Date(v._date).getTime();const n=Date.parse(v);return Number.isNaN(n)?0:n},
  format(t){const n=this.toTime(t);if(!n)return'';const d=new Date(n),now=new Date();if(d.toDateString()===now.toDateString())return'今天';const y=d.getFullYear(),m=('0'+(d.getMonth()+1)).slice(-2),day=('0'+d.getDate()).slice(-2);return y===now.getFullYear()?m+'月'+day+'日':y+'年'+m+'月'+day+'日'},
  openDish(e){wx.navigateTo({url:'/pages/dish/dish?id='+e.currentTarget.dataset.id})},
- clear(){wx.showModal({title:'清空本地记录？',content:'会清除本机的吃过记录；云端历史暂不删除。',confirmText:'清空',success:r=>{if(r.confirm){wx.removeStorageSync('eatHistory');this.setData({items:[]})}}})}
+ clear(){if(this.data.clearing)return;wx.showModal({title:'清空吃过记录？',content:'清空后，本地和云端的吃过记录都会删除。',confirmText:'清空',success:async r=>{if(!r.confirm)return;this.setData({clearing:true});try{const result=await call('clearEatHistory');if(result&&result.success===false)throw new Error(result.message||'清空失败');wx.removeStorageSync('eatHistory');this.setData({items:[]});wx.showToast({title:'已清空',icon:'success'})}catch(e){wx.showToast({title:'清空失败，请稍后再试',icon:'none'})}finally{this.setData({clearing:false})}}})}
 })
