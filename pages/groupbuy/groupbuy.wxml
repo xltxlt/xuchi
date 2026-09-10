@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="hero"><view class="title">一起买，数量一眼算清</view><view class="sub">发起一个团购，大家填写购买数量，自动汇总总份数和预计金额</view></view>
+  <view class="card form">
+    <view class="section-title">发起组团购</view>
+    <input placeholder="团购名称，如：周五奶茶团" data-key="title" bindinput="input" value="{{title}}" />
+    <input placeholder="商品/菜品名称" data-key="dishName" bindinput="input" value="{{dishName}}" />
+    <input placeholder="店铺名称（可选）" data-key="storeName" bindinput="input" value="{{storeName}}" />
+    <view class="row"><input class="half" type="digit" placeholder="单价（可选）" data-key="price" bindinput="input" value="{{price}}" /><input class="half" placeholder="单位，如：份/杯" data-key="unit" bindinput="input" value="{{unit}}" /></view>
+    <button class="primary" bindtap="create">创建团购</button>
+  </view>
+  <view class="section-title outside">进行中的团购</view>
+  <view wx:if="{{!groups.length}}" class="empty">还没有团购，发起第一个吧</view>
+  <view wx:for="{{groups}}" wx:key="_id" class="card group" data-id="{{item._id}}" bindtap="open">
+    <view class="group-title">{{item.title}}</view>
+    <view class="muted">{{item.dishName}} {{item.storeName ? '· '+item.storeName : ''}}</view>
+    <view class="stats"><view><text class="num">{{item.participantCount || 0}}</text><text> 人</text></view><view><text class="num">{{item.totalQty || 0}}</text><text> {{item.unit || '份'}}</text></view><view><text class="num">¥{{item.price || 0}}</text><text> /{{item.unit || '份'}}</text></view></view>
+  </view>
+</view>
