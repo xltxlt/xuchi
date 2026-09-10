@@ -4,7 +4,7 @@ const {call}=require('../../utils/api');
 Page({
  data:{dish:dishes[0],vote:'none',voteStats:{yes:0,conditional:0,no:0},voteCounts:{yes:0,conditional:0,no:0},favorited:false,comments:[],comment:'',replyTo:'',replyName:'',recorded:false,loading:false,reason:'',reasonTags:[],similarUsers:[],submitting:false},
  async onLoad(o){
-  const id=Number(o.id),history=wx.getStorageSync('eatHistory')||[],votes=wx.getStorageSync('dishVotes')||[];
+  const id=Number(o.id),history=wx.getStorageSync('eatHistory')||[],votes=wx.getStorageSync('dishVotes')||{};
   const local=dishes.find(x=>x.id==id)||dishes[0];
   this.setData({dish:local,vote:votes[local.id]||'none',favorited:(wx.getStorageSync('favoriteDishes')||[]).includes(local.id),recorded:history.some(x=>x.id===local.id),loading:true});
   try{
