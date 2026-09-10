@@ -9,7 +9,7 @@ Page({
   eatAgain(){const d=this.data.dish;let history=wx.getStorageSync('eatHistory')||[];history=history.filter(x=>x.id!==d.id);history.unshift({id:d.id,name:d.name,store:d.store,emoji:d.emoji,status:'🔁 再吃一次',time:Date.now()});wx.setStorageSync('eatHistory',history.slice(0,100));this.setData({recorded:true});wx.showToast({title:'已记入今天，去吃它吧',icon:'success'});call('action',{dishId:d.id,type:'eatAgain'}).catch(()=>{})},
   onComment(e){this.setData({comment:e.detail.value})},
   reply(e){this.setData({replyTo:e.currentTarget.dataset.id});wx.showToast({title:'正在回复',icon:'none'})},
-  submitComment(){const content=this.data.comment.trim();if(!content)return;call('comment',{dishId:this.data.dish.id,content,parentId:this.data.replyTo}).then(()=>{this.setData({comment:'',replyTo:''});this.loadComments();wx.showToast({title:'评论成功',icon:'success')}).catch(()=>{})},
+  submitComment(){const content=this.data.comment.trim();if(!content)return;call('comment',{dishId:this.data.dish.id,content,parentId:this.data.replyTo}).then(()=>{this.setData({comment:'',replyTo:''});this.loadComments();wx.showToast({title:'评论成功',icon:'success'})}).catch(()=>{})},
   likeComment(e){call('commentLike',{commentId:e.currentTarget.dataset.id}).then(()=>this.loadComments()).catch(()=>{})},
   share(){wx.showToast({title:'已生成同好分享卡',icon:'success'})},
   openReason(){wx.navigateTo({url:'/pages/reason/reason?id='+this.data.dish.id})},
