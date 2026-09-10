@@ -1,34 +1,12 @@
 <view class="page">
-  <view class="hero">
-    <view class="hello">嗨，{{user.name}} 👋</view>
-    <view class="title">{{greeting}}</view>
-    <view class="subtitle">按你的口味，先帮你挑好了</view>
-    <view class="taste-link" bindtap="openTaste">🌶️ {{user.tags[0]}} · {{user.tags[1]}} <text>调整口味 ›</text></view>
-  </view>
+  <view class="hero"><view class="hello">嗨，{{user.name}} 👋</view><view class="title">{{greeting}}</view><view class="subtitle">按你的口味，先帮你挑好了</view><view class="taste-link" bindtap="openTaste">🌶️ {{user.tags[0]}} · {{user.tags[1]}} <text>调整口味 ›</text></view></view>
+
+  <view class="decision" bindtap="decideForMe"><view class="decision-icon">🎲</view><view class="decision-main"><view class="decision-title">不知道吃什么？交给许吃</view><view class="decision-sub">结合你的口味、今天的场景，直接替你选一个</view></view><view class="decision-arrow">今晚就吃它 ›</view></view>
 
   <view class="section-head"><view><text class="section-title">今天推荐</text><text class="section-desc"> · {{picks.length}} 个可能合你胃口</text></view><text class="shuffle" bindtap="shuffle">换一批 ↻</text></view>
-  <view wx:for="{{picks}}" wx:key="id" class="pick-card" bindtap="openDish" data-id="{{item.id}}">
-    <view class="food">{{item.emoji}}</view>
-    <view class="pick-main">
-      <view class="row"><text class="dish-name">{{item.name}}</text><text class="price">¥{{item.price}}</text></view>
-      <view class="store">{{item.store}}</view>
-      <view class="tags"><text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text></view>
-      <view class="reason">✨ {{item.reason}}</view>
-    </view>
-    <view class="match">{{item.match}}%<text>匹配</text></view>
-  </view>
+  <view wx:for="{{picks}}" wx:key="id" class="pick-card" bindtap="openDish" data-id="{{item.id}}"><view class="food">{{item.emoji}}</view><view class="pick-main"><view class="row"><text class="dish-name">{{item.name}}</text><text class="price">¥{{item.price}}</text></view><view class="store">{{item.store}}</view><view class="tags"><text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text></view><view class="reason">✨ {{item.reason}}</view></view><view class="match">{{item.match}}%<text>匹配</text></view></view>
 
-  <view class="quick-grid">
-    <view class="quick" bindtap="openNearby"><text>📍</text><view><b>附近吃什么</b><small>看看身边好吃的</small></view></view>
-    <view class="quick" bindtap="openDiscover"><text>👯</text><view><b>同好在吃</b><small>看看口味相似的人</small></view></view>
-  </view>
-
-  <view wx:if="{{recent.length}}" class="history-block">
-    <view class="section-head"><view><text class="section-title">刚刚吃过</text><text class="section-desc"> · 你的美食记忆</text></view><text class="more" bindtap="openHistory">全部 ›</text></view>
-    <view wx:for="{{recent}}" wx:key="id" class="recent" bindtap="openDish" data-id="{{item.id}}">
-      <text class="recent-emoji">{{item.emoji}}</text><view class="recent-main"><b>{{item.name}}</b><text>{{item.store}}</text></view><text class="recent-status">{{item.status}}</text>
-    </view>
-  </view>
-
+  <view class="quick-grid"><view class="quick" bindtap="openNearby"><text>📍</text><view><b>附近吃什么</b><small>看看身边好吃的</small></view></view><view class="quick" bindtap="openDiscover"><text>👯</text><view><b>同好在吃</b><small>看看口味相似的人</small></view></view></view>
+  <view wx:if="{{recent.length}}" class="history-block"><view class="section-head"><view><text class="section-title">刚刚吃过</text><text class="section-desc"> · 你的美食记忆</text></view><text class="more" bindtap="openHistory">全部 ›</text></view><view wx:for="{{recent}}" wx:key="id" class="recent" bindtap="openDish" data-id="{{item.id}}"><text class="recent-emoji">{{item.emoji}}</text><view class="recent-main"><b>{{item.name}}</b><text>{{item.store}}</text></view><text class="recent-status">{{item.status}}</text></view></view>
   <view class="bottom-tip">许吃越久，越懂你的口味 · ❤️</view>
 </view>
