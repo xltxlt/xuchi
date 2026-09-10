@@ -1,0 +1,7 @@
+{
+  "collections": [
+    {"name":"group_buys","indexes":["status+createdAt","creatorId","storeId","dishId"]},
+    {"name":"group_buy_members","indexes":["groupId+openid","groupId+updatedAt","openid"]}
+  ],
+  "purpose":"组团购仅用于统计每个人购买数量、总数量、参与人数和预计金额；当前不包含支付、收款和订单履约。"
+}
