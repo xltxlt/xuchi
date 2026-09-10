@@ -4,7 +4,7 @@ const {call}=require('../../utils/api');
 Page({
  data:{dish:dishes[0],vote:'none',voteStats:{yes:0,conditional:0,no:0},voteCounts:{yes:0,conditional:0,no:0},favorited:false,comments:[],comment:'',replyTo:'',replyName:'',recorded:false,loading:false,reason:'',reasonTags:[],similarUsers:[],submitting:false},
  async onLoad(o){
-  const id=Number(o.id),history=wx.getStorageSync('eatHistory')||[],votes=wx.getStorageSync('dishVotes')||{};
+  const id=Number(o.id),history=wx.getStorageSync('eatHistory')||[],votes=wx.getStorageSync('dishVotes')||[];
   const local=dishes.find(x=>x.id==id)||dishes[0];
   this.setData({dish:local,vote:votes[local.id]||'none',favorited:(wx.getStorageSync('favoriteDishes')||[]).includes(local.id),recorded:history.some(x=>x.id===local.id),loading:true});
   try{
@@ -28,8 +28,9 @@ Page({
   call('recommendReason',{dishId:d.id}).then(r=>{if(r&&r.data){const x=r.data;this.setData({reason:x.reason||reason,reasonTags:x.common&&x.common.length?x.common.slice(0,4):this.data.reasonTags})}}).catch(()=>{});
  },
  loadSimilar(){
-  call('sameHobby').then(r=>{const list=Array.isArray(r&&r.data)?r.data:[];this.setData({similarUsers:list.slice(0,3)})}).catch(()=>{});
+  call('sameHobby').then(r=>{const list=Array.isArray(r&&r.data)?r.data:[];this.setData({similarUsers:list.filter(x=>x&&x._id).slice(0,3)})}).catch(()=>{});
  },
+ openHobby(e){const id=e.currentTarget.dataset.id;if(id)wx.navigateTo({url:'/pages/hobby-detail/hobby-detail?id='+encodeURIComponent(id)})},
  async loadComments(){try{const r=await call('comments',{dishId:this.data.dish.id,page:1}),roots=Array.isArray(r&&r.data)?r.data:[];const comments=await Promise.all(roots.map(async item=>{try{const rr=await call('comments',{dishId:this.data.dish.id,parentId:item._id,page:1});return Object.assign({},item,{replies:Array.isArray(rr&&rr.data)?rr.data:[]})}catch(e){return Object.assign({},item,{replies:[]})}}));this.setData({comments})}catch(e){this.setData({comments:[]})}},
  vote(e){const type=typeof e==='string'?e:e&&e.currentTarget&&e.currentTarget.dataset&&e.currentTarget.dataset.type;if(!['yes','conditional','no'].includes(type))return;const id=this.data.dish.id,old=this.data.vote,next=old===type?'none':type,votes=wx.getStorageSync('dishVotes')||{},stats=Object.assign({},this.data.voteStats),counts=Object.assign({},this.data.voteCounts);if(old&&old!=='none'){if(stats[old]>0)stats[old]--;if(counts[old]>0)counts[old]--}if(next!=='none'){stats[next]++;counts[next]++}votes[id]=next;wx.setStorageSync('dishVotes',votes);this.setData({vote:next,voteStats:stats,voteCounts:counts});call('action',{dishId:id,type:next}).then(r=>{if(r&&r.success===false)throw new Error(r.message||'操作失败');return call('dishStats',{dishId:id})}).then(r=>{if(r&&r.data){const v=wx.getStorageSync('dishVotes')||{};if(r.data.vote)v[id]=r.data.vote;else delete v[id];wx.setStorageSync('dishVotes',v);this.setData({vote:r.data.vote||'none',voteStats:r.data.stats||stats,voteCounts:r.data.counts||counts})}}).catch(()=>{const rollback=Object.assign({},this.data.voteStats),rollbackCounts=Object.assign({},this.data.voteCounts);if(next!=='none'){if(rollback[next]>0)rollback[next]--;if(rollbackCounts[next]>0)rollbackCounts[next]--}if(old&&old!=='none'){rollback[old]++;rollbackCounts[old]++}votes[id]=old;wx.setStorageSync('dishVotes',votes);this.setData({vote:old,voteStats:rollback,voteCounts:rollbackCounts});wx.showToast({title:'操作失败，请稍后再试',icon:'none'})})},
  toggleLike(){this.vote('yes')},
