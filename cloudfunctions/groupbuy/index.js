@@ -120,13 +120,42 @@ exports.main = async (e = {}) => {
 
     if (action === 'summary') {
       const id = String(e.id || '');
+      if (!id) return { success: false, message: '团购不存在' };
       const group = (await db.collection('group_buys').doc(id).get()).data;
       if (!group) return { success: false, message: '团购不存在' };
       const members = (await db.collection('group_buy_members').where({ groupId: id }).orderBy('updatedAt', 'asc').limit(100).get()).data;
       const active = members.filter(x => Number(x.qty) > 0);
-      const totalQty = active.reduce((n, x) => n + Number(x.qty), 0);
-      const totalAmount = Number(group.price || 0) * totalQty;
-      return { success: true, data: { group, members: active, totalQty, participantCount: active.length, totalAmount } };
+      const calculatedQty = active.reduce((n, x) => n + Math.max(0, Number(x.qty) || 0), 0);
+      const calculatedParticipants = active.length;
+      const cachedQty = Math.max(0, Number(group.totalQty) || 0);
+      const cachedParticipants = Math.max(0, Number(group.participantCount) || 0);
+      const inconsistent = calculatedQty !== cachedQty || calculatedParticipants !== cachedParticipants;
+      return { success: true, data: {
+        group,
+        members: active,
+        totalQty: calculatedQty,
+        participantCount: calculatedParticipants,
+        totalAmount: Number(group.price || 0) * calculatedQty,
+        consistent: !inconsistent
+      } };
+    }
+
+    if (action === 'reconcile') {
+      const id = String(e.id || '');
+      if (!id) return { success: false, message: '团购不存在' };
+      const group = (await db.collection('group_buys').doc(id).get()).data;
+      if (!group || group.creatorId !== openid) return { success: false, message: '只有发起人可以校准团购' };
+      const result = await db.runTransaction(async transaction => {
+        const txGroup = (await transaction.collection('group_buys').doc(id).get()).data;
+        if (!txGroup || txGroup.creatorId !== openid) throw new Error('无权校准团购');
+        const members = (await transaction.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
+        const active = members.filter(x => Number(x.qty) > 0);
+        const totalQty = active.reduce((n, x) => n + Math.max(0, Number(x.qty) || 0), 0);
+        const participantCount = active.length;
+        await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
+        return { totalQty, participantCount };
+      });
+      return { success: true, ...result };
     }
 
     return { success: false, message: '未知操作' };
