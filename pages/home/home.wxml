@@ -1,4 +1,5 @@
-<view class="page"><view wx:if="{{firstUse}}" class="welcome-card"><view class="welcome-emoji">🍜</view><view class="welcome-title">先让我认识一下你的胃</view><view class="welcome-sub">选几个你喜欢的口味，许吃会更懂你</view><button bindtap="startTaste">开始设置口味 →</button><view class="welcome-skip" bindtap="startTaste">现在先随便看看</view></view>
+<view class="page"><view wx:if="{{firstUse}}" class="welcome-card"><view class="welcome-emoji">🍜</view><view class="welcome-title">先让我认识一下你的胃</view><view class="welcome-sub">选几个你喜欢的口味，许吃会更懂你</view><button bindtap="startTaste">开始设置口味 →</button><view class="welcome-skip" bindtap="skipOnboarding">先看看首页</view></view>
+  <block wx:if="{{!firstUse}}">
   <view class="hero"><view class="hello">嗨，{{user.name}} 👋</view><view class="title">{{greeting}}</view><view class="subtitle">按你的口味，先帮你挑好了</view><view class="taste-link" bindtap="openTaste">🌶️ {{user.tags[0]}} · {{user.tags[1]}} <text>调整口味 ›</text></view></view>
 
   <view wx:if="{{error}}" class="error-card"><view>推荐暂时没连上</view><text>先看看本地内容，网络恢复后可以重新推荐</text><button bindtap="retry">重新推荐</button></view>
@@ -12,3 +13,4 @@
   <view wx:if="{{recent.length}}" class="history-block"><view class="section-head"><view><text class="section-title">刚刚吃过</text><text class="section-desc"> · 你的美食记忆</text></view><text class="more" bindtap="openHistory">全部 ›</text></view><view wx:for="{{recent}}" wx:key="id" class="recent" bindtap="openDish" data-id="{{item.id}}"><text class="recent-emoji">{{item.emoji}}</text><view class="recent-main"><b>{{item.name}}</b><text>{{item.store}}</text></view><text class="recent-status">{{item.status}}</text></view></view>
   <view class="bottom-tip">许吃越久，越懂你的口味 · ❤️</view>
 </view>
+</block>
