@@ -71,9 +71,9 @@ exports.main = async (e = {}) => {
         } else {
           await transaction.collection('group_buy_members').add({ data: { groupId: id, openid, name, qty: amount, note: String(e.note || '').slice(0, 100), role: 'member', createdAt: now(), updatedAt: now() } });
         }
-        const members = (await transaction.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
-        const totalQty = members.reduce((n, x) => n + (Number(x.qty) || 0), 0) + (old.data.length ? 0 : amount);
-        const participantCount = members.filter(x => Number(x.qty) > 0).length + (old.data.length ? 0 : 1);
+        const oldQty = old.data.length ? Math.max(0, Number(old.data[0].qty) || 0) : 0;
+        const totalQty = Math.max(0, Number(txGroup.totalQty) || 0) - oldQty + amount;
+        const participantCount = Math.max(0, Number(txGroup.participantCount) || 0) + (old.data.length ? 0 : 1);
         await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
         return { totalQty, participantCount };
       });
@@ -85,9 +85,10 @@ exports.main = async (e = {}) => {
       const result = await db.runTransaction(async transaction => {
         const old = await transaction.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
         if (old.data.length) await transaction.collection('group_buy_members').doc(old.data[0]._id).remove();
-        const members = (await transaction.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
-        const totalQty = members.reduce((n, x) => n + (Number(x.qty) || 0), 0);
-        const participantCount = members.filter(x => Number(x.qty) > 0).length;
+        const oldQty = old.data.length ? Math.max(0, Number(old.data[0].qty) || 0) : 0;
+        const hadParticipant = oldQty > 0 ? 1 : 0;
+        const totalQty = Math.max(0, Number((await transaction.collection('group_buys').doc(id).get()).data.totalQty || 0) - oldQty);
+        const participantCount = Math.max(0, Number((await transaction.collection('group_buys').doc(id).get()).data.participantCount || 0) - hadParticipant);
         await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
         return { totalQty, participantCount };
       });
