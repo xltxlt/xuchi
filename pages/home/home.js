@@ -7,7 +7,8 @@ function recommendV2(scene){
 }
 Page({
  data:{user:{name:'小许',tags:['重口玩家','碳水脑袋'],match:91},firstUse:false,tasteReady:false,greeting:'今天想吃什么？',picks:[],recent:[],decision:null,refreshing:false,deciding:false,loading:false,error:false},
- onLoad(){const onboarded=wx.getStorageSync('xuchi_onboarded');this.setData({firstUse:!onboarded});this.load()},onShow(){this.loadRecent()},
+ onLoad(){const onboarded=wx.getStorageSync('xuchi_onboarded');this.setData({firstUse:!onboarded});this.waitForApp()},onShow(){this.loadRecent()},
+waitForApp(){const app=getApp();if(app.globalData&&app.globalData.ready)return this.load();let n=0;this._readyTimer=setInterval(()=>{if((getApp().globalData||{}).ready||++n>=30){clearInterval(this._readyTimer);this.load()}},200)},
  onPullDownRefresh(){this.setData({refreshing:true});this.load().finally(()=>{this.setData({refreshing:false});wx.stopPullDownRefresh()})},
  load(){if(this._loading)return Promise.resolve();this._loading=true;this.setData({loading:true,error:false});const app=getApp();const user=(app.globalData&&app.globalData.user)||this.data.user;this.setData({user},()=>this.loadRecent());const scene=this.sceneText();return recommendV2(scene).catch(()=>call('recommend',{limit:6,scene},{cache:true})).then(r=>{const list=(r&&r.data&&r.data.dishes)||r.data||[];const picks=(Array.isArray(list)&&list.length?list:dishes).slice(0,3);this.setData({picks,decision:picks[0]||null},()=>this.trackPicks(scene,'recommend'));}).catch(()=>{const picks=dishes.slice(0,3);this.setData({picks,decision:picks[0]||null,error:true})}).finally(()=>{this._loading=false;this.setData({loading:false})})},
  trackPicks(scene,source){(this.data.picks||[]).forEach((x,i)=>track(x.id,'exposure',source,scene,i+1))},
