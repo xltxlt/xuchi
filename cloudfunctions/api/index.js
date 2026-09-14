@@ -2,6 +2,7 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
+const { profile, ensureUser, getUserTaste } = require('./userProfile');
 const MAX_PAGE = 20;
 const LEVELS = [['初来乍吃',0],['小吃货',100],['好吃佬',200],['资深吃货',350],['美食家',500],['许吃大师',800]];
 const seedStores = [
@@ -27,8 +28,6 @@ function levelInfo(exp=0){let i=0;LEVELS.forEach((x,n)=>{if(exp>=x[1])i=n});retu
 function page(e){return Math.max(1,Number(e.page)||1)}
 async function ensureSeeds(){if(!(await db.collection('dishes').limit(1).get()).data.length)for(const x of seedDishes)await db.collection('dishes').add({data:x});if(!(await db.collection('stores').limit(1).get()).data.length)for(const x of seedStores)await db.collection('stores').add({data:x})}
 function distance(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,A=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return Math.round(R*2*Math.atan2(Math.sqrt(A),Math.sqrt(1-A)))}
-async function profile(id){return (await db.collection('users').doc(id).get().catch(()=>({data:{}}))).data||{}}
-async function ensureUser(id){await db.collection('users').doc(id).set({data:{_id:id,updatedAt:now()},merge:true}).catch(()=>{})}
 exports.main=async(e)=>{const action=e.action,me=openid();try{await ensureUser(me);
 if(action==='login')return{success:true,openid:me,data:await profile(me)};
 if(action==='seed'){await ensureSeeds();return{success:true}};
