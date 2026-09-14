@@ -11,5 +11,6 @@
   "notifications":{"read":"_openid == auth.openid","write":false},
   "merchant_claims":{"read":"_openid == auth.openid","write":false},
   "coupons":{"read":true,"write":false},
+  "user_action_events":{"read":false,"write":false},
   "coupon_users":{"read":"_openid == auth.openid","write":"_openid == auth.openid"}
 }
