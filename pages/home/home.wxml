@@ -4,6 +4,7 @@
 
   <view wx:if="{{error}}" class="error-card"><view>推荐暂时没连上</view><text>先看看本地内容，网络恢复后可以重新推荐</text><button bindtap="retry">重新推荐</button></view>
   <view class="decision" bindtap="decideForMe" hover-class="decision-hover"><view class="decision-icon">🎯</view><view class="decision-main"><view class="decision-title">{{deciding?'正在替你选…':'不知道吃什么？交给许吃'}}</view><view class="decision-sub" wx:if="{{decision}}">{{decision.name}} · {{decision.match}}% 像你 · {{decision.reason}}</view><view class="decision-sub" wx:else>结合你的口味、今天的场景，直接替你选一个</view></view><view class="decision-arrow">{{deciding?'请稍等':'今晚就吃它 ›'}}</view></view>
+  <view class="preference-strip"><text class="pref-title">不太想吃？</text><scroll-view scroll-x class="pref-scroll"><view class="pref-item" wx:for="{{quickPrefs}}" wx:key="key" bindtap="applyQuickPref" data-key="{{item.key}}">{{item.icon}} {{item.label}}</view></scroll-view></view>
 
   <view class="section-head"><view><text class="section-title">今天推荐</text><text class="section-desc"> · {{picks.length}} 个可能合你胃口</text></view><text class="shuffle" bindtap="shuffle">换一批</text></view>
   <view wx:if="{{loading}}" class="loading-list"><view wx:for="{{[1,2,3]}}" wx:key="*this" class="skeleton-card"><view class="skeleton-food"></view><view class="skeleton-main"><view class="skeleton-line long"></view><view class="skeleton-line"></view><view class="skeleton-line short"></view></view></view></view>
