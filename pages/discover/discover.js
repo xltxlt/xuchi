@@ -10,7 +10,7 @@ function loadFeed(page=1){
 
 Page({
   data:{feed:[],hotTags:['必点','性价比高','重口爱好者','隐藏宝藏','下午茶','夜宵'],loading:true},
-  onLoad(){this.load()},
+  onLoad(){this.load()},onShow(){if(!this.data.feed.length)this.load()},
   onPullDownRefresh(){this.load().finally(()=>wx.stopPullDownRefresh())},
   load(){
     this.setData({loading:true});
