@@ -26,11 +26,11 @@ function openid(){return cloud.getWXContext().OPENID} function now(){return db.s
 function score(d,taste=[]){const s=new Set(taste||[]),tags=d.tags||[],hit=tags.filter(x=>s.has(x)).length;return clamp(Math.round((d.match||70)*.6+(hit/Math.max(tags.length,1))*40),40,99)}
 function levelInfo(exp=0){let i=0;LEVELS.forEach((x,n)=>{if(exp>=x[1])i=n});return{level:i+1,name:LEVELS[i][0],next:LEVELS[Math.min(i+1,LEVELS.length-1)][1],exp}}
 function page(e){return Math.max(1,Number(e.page)||1)}
-async function ensureSeeds(){if(!(await db.collection('dishes').limit(1).get()).data.length)for(const x of seedDishes)await db.collection('dishes').add({data:x});if(!(await db.collection('stores').limit(1).get()).data.length)for(const x of seedStores)await db.collection('stores').add({data:x})}
+async function ensureSeeds(){if(process.env.XUCHI_ENABLE_SEEDS!=='true')return;const has=await db.collection('dishes').limit(1).get();if(!has.data.length)for(const x of seedDishes)await db.collection('dishes').add({data:x});const stores=await db.collection('stores').limit(1).get();if(!stores.data.length)for(const x of seedStores)await db.collection('stores').add({data:x})}
 function distance(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,A=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return Math.round(R*2*Math.atan2(Math.sqrt(A),Math.sqrt(1-A)))}
 exports.main=async(e)=>{const action=e.action,me=openid();try{await ensureUser(me);
 if(action==='login')return{success:true,openid:me,data:await profile(me)};
-if(action==='seed'){await ensureSeeds();return{success:true}};
+if(action==='seed'){if(process.env.XUCHI_ENABLE_SEEDS!=='true')return{success:false,message:'生产环境已关闭种子数据'};await ensureSeeds();return{success:true}};
 if(action==='getDishes'){await ensureSeeds();let q=db.collection('dishes');if(e.storeId)q=q.where({storeId:Number(e.storeId)});const r=await q.skip((page(e)-1)*MAX_PAGE).limit(MAX_PAGE).get();return{success:true,data:r.data}};
 if(action==='getDish'){await ensureSeeds();const dishId=Number(e.id??e.dishId);if(!Number.isFinite(dishId)||dishId<=0)return{success:false,message:'无效菜品'};const r=await db.collection('dishes').where({id:dishId}).limit(1).get();return{success:true,data:r.data[0]||seedDishes.find(x=>x.id===dishId)}};
 if(action==='getStores'){await ensureSeeds();const r=await db.collection('stores').skip((page(e)-1)*MAX_PAGE).limit(MAX_PAGE).get();return{success:true,data:r.data.length?r.data:seedStores}};
