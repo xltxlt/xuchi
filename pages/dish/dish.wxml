@@ -56,5 +56,5 @@
     <view class="quick-links"><view bindtap="favorite">{{favorited?'★ 已收藏':'☆ 收藏这道菜'}}</view><view bindtap="openHistory">🍽️ 我的吃过</view><view bindtap="share">↗ 分享给同好</view></view>
     <view class="groupbuy-entry" bindtap="startGroupBuy"><view class="groupbuy-icon">🛒</view><view class="groupbuy-copy"><view class="groupbuy-title">一键发起团购</view><view class="groupbuy-sub">自动带入 {{dish.name}} · ¥{{dish.price}}/{{dish.unit||'份'}}</view></view><text class="groupbuy-arrow">›</text></view>
   </view>
-  <view class="bottom-bar"><button bindtap="vote" data-type="yes">{{vote==='yes'?'❤️ 已许吃':'❤️ 许吃'}}</button><button bindtap="favorite">{{favorited?'★ 已收藏':'☆ 收藏'}}</button><button class="primary" bindtap="recordEat">{{recorded?'🍽️ 再记一次':'🍽️ 吃过'}}</button></view>
+  <view class="bottom-bar"><button class="secondary" bindtap="favorite">{{favorited?"★":"☆"}}</button><button bindtap="vote" data-type="yes">{{vote==='yes'?'❤️ 已许吃':'❤️ 许吃'}}</button><button bindtap="favorite">{{favorited?"已收藏":"收藏"}}</button><button class="primary" bindtap="recordEat">{{recorded?'🍽️ 再记一次':'🍽️ 吃过'}}</button></view>
 </view>
