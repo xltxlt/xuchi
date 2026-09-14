@@ -1,7 +1,7 @@
 const cloud=require('wx-server-sdk');
 cloud.init({env:cloud.DYNAMIC_CURRENT_ENV});
 const db=cloud.database();
-const MAX=100;
+const MAX=500;
 const WEIGHTS={yes:1,conditional:0.25,no:-1,eat:1.15,eatAgain:1.35,favorite:1.2};
 function clamp(n,a=20,b=99){return Math.max(a,Math.min(b,n))}
 function arr(v){return Array.isArray(v)?v:[]}
@@ -33,13 +33,13 @@ exports.main=async(e)=>{
   const favoriteIds=new Set(favs.map(x=>Number(x.dishId)));
   const eatMap=new Map();eats.forEach(x=>{const id=Number(x.dishId);const old=eatMap.get(id);if(!old||ageDays(x.createdAt)<ageDays(old.createdAt))eatMap.set(id,x)});
   const actionMap=new Map(actions.filter(x=>['yes','conditional','no'].includes(x.type)).map(x=>[Number(x.dishId),x]));
-  const tagAffinity=new Map(),negativeTags=new Set();
+  const dishMap=new Map(dishes.map(d=>[Number(d.id),d])),tagAffinity=new Map(),negativeTags=new Set();
   function addAffinity(tags,weight){tags.forEach(t=>tagAffinity.set(t,(tagAffinity.get(t)||0)+weight))}
-  actions.forEach(a=>{const d=dishes.find(x=>Number(x.id)===Number(a.dishId)),tags=tagsOf(d).length?tagsOf(d):arr(a.tags);const w=(WEIGHTS[a.type]||0)*decay(a.updatedAt||a.createdAt);if(w)addAffinity(tags,w);if(a.type==='no')tags.forEach(t=>negativeTags.add(t))});
-  eats.forEach(a=>{const d=dishes.find(x=>Number(x.id)===Number(a.dishId));addAffinity(tagsOf(d),(WEIGHTS[a.type]||1)*decay(a.createdAt))});
-  favs.forEach(a=>{const d=dishes.find(x=>Number(x.id)===Number(a.dishId));addAffinity(tagsOf(d),WEIGHTS.favorite*decay(a.createdAt))});
+  actions.forEach(a=>{const d=dishMap.get(Number(a.dishId)),tags=tagsOf(d).length?tagsOf(d):arr(a.tags);const w=(WEIGHTS[a.type]||0)*decay(a.updatedAt||a.createdAt);if(w)addAffinity(tags,w);if(a.type==='no')tags.forEach(t=>negativeTags.add(t))});
+  eats.forEach(a=>{const d=dishMap.get(Number(a.dishId));addAffinity(tagsOf(d),(WEIGHTS[a.type]||1)*decay(a.createdAt))});
+  favs.forEach(a=>{const d=dishMap.get(Number(a.dishId));addAffinity(tagsOf(d),WEIGHTS.favorite*decay(a.createdAt))});
   const communityByDish=new Map();community.forEach(a=>{if(!['yes','conditional','no'].includes(a.type))return;const id=Number(a.dishId),x=communityByDish.get(id)||{yes:0,conditional:0,no:0};x[a.type]++;communityByDish.set(id,x)});
-  const scene=String(e.scene||'');
+  const scene=String(e.scene||'');const resultLimit=Math.max(1,Math.min(20,Number(e.limit)||10));
   const sceneTags={早餐:['早餐','面食'],午餐:['午餐','米饭','面食'],下午茶:['下午茶','甜品'],晚餐:['晚餐','烧烤','火锅'],夜宵:['夜宵','烧烤','小吃']}[scene]||[];
   const ranked=dishes.map(d=>{
    const tags=tagsOf(d),direct=overlap(taste,tags).length,aff=tags.reduce((s,t)=>s+(tagAffinity.get(t)||0),0),affNorm=aff/(Math.max(1,tags.length)*1.5),sceneHit=overlap(sceneTags,tags).length,counts=communityByDish.get(Number(d.id))||{yes:0,conditional:0,no:0},total=counts.yes+counts.conditional+counts.no,communityRate=total?Math.round(counts.yes/total*100):0,reaction=actionMap.get(Number(d.id)),eaten=eatMap.has(Number(d.id)),favorite=favoriteIds.has(Number(d.id));
@@ -56,7 +56,7 @@ exports.main=async(e)=>{
   }).filter(x=>!(x.signals.reaction==='no'));
   ranked.sort((a,b)=>b.match-a.match||Number(b.likes||0)-Number(a.likes||0));
   const fresh=ranked.filter(x=>!x._explored),explored=ranked.filter(x=>x._explored);
-  const result=[...fresh,...explored].slice(0,10).map(x=>{const y={...x};delete y._explored;return y});
+  const result=[...fresh,...explored].slice(0,resultLimit).map(x=>{const y={...x};delete y._explored;return y});
   return{success:true,data:result,profile:{taste:taste.slice(0,30),signals:actions.length+eats.length+favs.length,learnedTags:[...tagAffinity.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0])}};
  }catch(err){console.error(err);return{success:false,message:'推荐服务暂不可用',error:err.message}};
 };
