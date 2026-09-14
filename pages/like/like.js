@@ -1,1 +1,1 @@
-const {dishes}=require('../../utils/data');Page({data:{list:[]},onShow(){const ids=wx.getStorageSync('likedDishes')||[];this.setData({list:dishes.filter(d=>ids.includes(d.id))})},open(e){wx.navigateTo({url:'/pages/dish/dish?id='+e.currentTarget.dataset.id})}})
+const {dishes}=require('../../utils/data');Page({data:{list:[]},onShow(){const ids=wx.getStorageSync('favoriteDishes')||[];this.setData({list:dishes.filter(d=>ids.includes(d.id))})},open(e){wx.navigateTo({url:'/pages/dish/dish?id='+e.currentTarget.dataset.id})}})
