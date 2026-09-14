@@ -62,7 +62,12 @@ exports.main=async(e)=>{
         text=post.vote==='no'?'不太推荐「'+dishName+'」':post.vote==='conditional'?'觉得「'+dishName+'」有条件许吃':'刚刚许吃了「'+dishName+'」';
       }
       return {
-        ...post,
+        _id:post._id,
+        createdAt:post.createdAt,
+        image:post.image||'',
+        vote:post.vote,
+        likes:Number(post.likes)||0,
+        comments:Number(post.comments)||0,
         userName:authorName,
         avatar:author.avatar||'🍜',
         dishId,
