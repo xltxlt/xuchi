@@ -1,0 +1,2 @@
+/* 许吃统一视觉规范：暖米白 / 珊瑚橙 / 高可读层级 */
+page{background:#FFF8EF;color:#332D29}button{border:0}button::after{border:0}.x-card{background:#FFFDF9;border-radius:24rpx;box-shadow:0 8rpx 28rpx rgba(89,60,40,.06)}.x-primary{background:#FF6848;color:#fff;border-radius:999rpx}.x-muted{color:#9A9088}.x-pill{background:#FFF0E5;color:#9A5B47;border-radius:999rpx;padding:8rpx 16rpx;font-size:21rpx}
