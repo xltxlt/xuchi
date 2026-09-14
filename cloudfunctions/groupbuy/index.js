@@ -8,6 +8,8 @@ function me() { return cloud.getWXContext().OPENID; }
 function now() { return db.serverDate(); }
 function page(e) { return Math.max(1, Number(e.page) || 1); }
 function qty(v) { return Math.max(1, Math.min(999, Number(v) || 1)); }
+function validEndAt(v) { const d=v instanceof Date?v:new Date(v); return d && !Number.isNaN(d.getTime()) ? d : null; }
+function isExpired(group) { return group && group.endAt && new Date(group.endAt).getTime() <= Date.now(); }
 
 exports.main = async (e = {}) => {
   const action = e.action;
@@ -16,8 +18,9 @@ exports.main = async (e = {}) => {
     if (action === 'create') {
       const title = String(e.title || '').trim().slice(0, 80);
       if (!title) return { success: false, message: '请填写团购名称' };
-      const endAt = e.endAt ? new Date(e.endAt) : null;
-      if (endAt && Number.isNaN(endAt.getTime())) return { success: false, message: '截止时间格式不正确' };
+      const endAt = e.endAt ? validEndAt(e.endAt) : null;
+      if (e.endAt && !endAt) return { success: false, message: '截止时间格式不正确' };
+      if (endAt && endAt.getTime() <= Date.now()) return { success: false, message: '截止时间必须晚于当前时间' };
       const r = await db.collection('group_buys').add({ data: {
         title,
         dishId: Number(e.dishId) || 0,
@@ -43,7 +46,9 @@ exports.main = async (e = {}) => {
 
     if (action === 'list') {
       const r = await db.collection('group_buys').where({ status: 'open' }).orderBy('createdAt', 'desc').skip((page(e) - 1) * MAX_PAGE).limit(MAX_PAGE).get();
-      return { success: true, data: r.data };
+      const expired = r.data.filter(isExpired).map(x => x._id);
+      if (expired.length) await Promise.all(expired.map(id => db.collection('group_buys').doc(id).update({ data: { status: 'expired', expiredAt: now(), updatedAt: now() } }).catch(() => null)));
+      return { success: true, data: r.data.filter(x => expired.indexOf(x._id) < 0) };
     }
 
     if (action === 'detail') {
@@ -51,6 +56,7 @@ exports.main = async (e = {}) => {
       if (!id) return { success: false, message: '团购不存在' };
       const group = (await db.collection('group_buys').doc(id).get()).data;
       if (!group) return { success: false, message: '团购不存在' };
+      if (group.status === 'open' && isExpired(group)) { await db.collection('group_buys').doc(id).update({ data: { status: 'expired', expiredAt: now(), updatedAt: now() } }); group.status = 'expired'; }
       const members = (await db.collection('group_buy_members').where({ groupId: id }).orderBy('updatedAt', 'asc').limit(100).get()).data;
       const mine = members.find(x => x.openid === openid) || null;
       return { success: true, data: { ...group, members, mine } };
@@ -65,6 +71,8 @@ exports.main = async (e = {}) => {
       const result = await db.runTransaction(async transaction => {
         const txGroup = (await transaction.collection('group_buys').doc(id).get()).data;
         if (!txGroup || txGroup.status !== 'open') throw new Error('该团购已结束');
+        if (isExpired(txGroup)) { await transaction.collection('group_buys').doc(id).update({ data: { status: 'expired', expiredAt: now(), updatedAt: now() } }); throw new Error('该团购已过期'); }
+        const maxQty = Math.max(0, Number(txGroup.maxQty) || 0);
         const old = await transaction.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
         if (old.data.length) {
           await transaction.collection('group_buy_members').doc(old.data[0]._id).update({ data: { qty: amount, name, note: String(e.note || '').slice(0, 100), updatedAt: now() } });
@@ -73,7 +81,10 @@ exports.main = async (e = {}) => {
         }
         const oldQty = old.data.length ? Math.max(0, Number(old.data[0].qty) || 0) : 0;
         const totalQty = Math.max(0, Number(txGroup.totalQty) || 0) - oldQty + amount;
+        if (maxQty > 0 && totalQty > maxQty) throw new Error('超过团购数量上限');
         const participantCount = Math.max(0, Number(txGroup.participantCount) || 0) + (old.data.length ? 0 : 1);
+        const maxParticipants = Math.max(0, Number(txGroup.maxParticipants) || 0);
+        if (maxParticipants > 0 && participantCount > maxParticipants) throw new Error('超过团购人数上限');
         await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
         return { totalQty, participantCount };
       });
@@ -83,6 +94,10 @@ exports.main = async (e = {}) => {
     if (action === 'leave') {
       const id = String(e.id || '');
       const result = await db.runTransaction(async transaction => {
+        const txGroup = (await transaction.collection('group_buys').doc(id).get()).data;
+        if (!txGroup) throw new Error('团购不存在');
+        if (txGroup.status !== 'open') throw new Error('该团购已结束');
+        if (isExpired(txGroup)) throw new Error('该团购已过期');
         const old = await transaction.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
         if (old.data.length) await transaction.collection('group_buy_members').doc(old.data[0]._id).remove();
         const oldQty = old.data.length ? Math.max(0, Number(old.data[0].qty) || 0) : 0;
