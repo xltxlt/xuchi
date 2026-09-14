@@ -62,30 +62,36 @@ exports.main = async (e = {}) => {
       const name = String(e.name || '匿名吃货').trim().slice(0, 30) || '匿名吃货';
       const group = (await db.collection('group_buys').doc(id).get()).data;
       if (!group || group.status !== 'open') return { success: false, message: '该团购已结束' };
-      const old = await db.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
-      if (old.data.length) {
-        await db.collection('group_buy_members').doc(old.data[0]._id).update({ data: { qty: amount, name, note: String(e.note || '').slice(0, 100), updatedAt: now() } });
-      } else {
-        await db.collection('group_buy_members').add({ data: { groupId: id, openid, name, qty: amount, note: String(e.note || '').slice(0, 100), role: 'member', createdAt: now(), updatedAt: now() } });
-      }
-      const members = (await db.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
-      const totalQty = members.reduce((n, x) => n + (Number(x.qty) || 0), 0);
-      const participantCount = members.filter(x => Number(x.qty) > 0).length;
-      await db.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
-      return { success: true, qty: amount, totalQty, participantCount };
+      const result = await db.runTransaction(async transaction => {
+        const txGroup = (await transaction.collection('group_buys').doc(id).get()).data;
+        if (!txGroup || txGroup.status !== 'open') throw new Error('该团购已结束');
+        const old = await transaction.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
+        if (old.data.length) {
+          await transaction.collection('group_buy_members').doc(old.data[0]._id).update({ data: { qty: amount, name, note: String(e.note || '').slice(0, 100), updatedAt: now() } });
+        } else {
+          await transaction.collection('group_buy_members').add({ data: { groupId: id, openid, name, qty: amount, note: String(e.note || '').slice(0, 100), role: 'member', createdAt: now(), updatedAt: now() } });
+        }
+        const members = (await transaction.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
+        const totalQty = members.reduce((n, x) => n + (Number(x.qty) || 0), 0) + (old.data.length ? 0 : amount);
+        const participantCount = members.filter(x => Number(x.qty) > 0).length + (old.data.length ? 0 : 1);
+        await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
+        return { totalQty, participantCount };
+      });
+      return { success: true, qty: amount, ...result };
     }
 
     if (action === 'leave') {
       const id = String(e.id || '');
-      const old = await db.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
-      if (old.data.length) await db.collection('group_buy_members').doc(old.data[0]._id).remove();
-      const members = (await db.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
-      await db.collection('group_buys').doc(id).update({ data: {
-        totalQty: members.reduce((n, x) => n + (Number(x.qty) || 0), 0),
-        participantCount: members.filter(x => Number(x.qty) > 0).length,
-        updatedAt: now()
-      }});
-      return { success: true };
+      const result = await db.runTransaction(async transaction => {
+        const old = await transaction.collection('group_buy_members').where({ groupId: id, openid }).limit(1).get();
+        if (old.data.length) await transaction.collection('group_buy_members').doc(old.data[0]._id).remove();
+        const members = (await transaction.collection('group_buy_members').where({ groupId: id }).limit(100).get()).data;
+        const totalQty = members.reduce((n, x) => n + (Number(x.qty) || 0), 0);
+        const participantCount = members.filter(x => Number(x.qty) > 0).length;
+        await transaction.collection('group_buys').doc(id).update({ data: { totalQty, participantCount, updatedAt: now() } });
+        return { totalQty, participantCount };
+      });
+      return { success: true, ...result };
     }
 
     if (action === 'close') {
